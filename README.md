@@ -200,7 +200,12 @@ This project is licensed under the <b>MIT License</b>, allowing free use, modifi
   </h3>
 
   <h4 style="color:#00ff99">
-    Happy Hacking 💀💚
+    Happy ethical Hacking 💀💚
   </h4>
 
 </div>
+
+<p style="text-align:center; color:#ff4c4c; font-size:12px; margin-top:20px; opacity:0.8;">
+⚠️ This tool is strictly for educational and authorized security testing only. 
+Do NOT scan any website without explicit permission.
+</p>
