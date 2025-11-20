@@ -1,0 +1,27 @@
+<!-- templates/base.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Web Vuln Scanner</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="matrix-bg"></div>
+
+<div class="container">
+    <header class="header">
+        <h1 class="logo-text">[ Web Vulnerability Scanner ]</h1>
+        <p class="subtitle">OWASP-style mini scanner · Hacker theme UI</p>
+    </header>
+
+    <main class="content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <span>For educational use on authorized targets only.</span>
+    </footer>
+</div>
+</body>
+</html>

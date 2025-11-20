@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+
+    <h2>Scan Results</h2>
+
+    <!-- Export buttons -->
+    <div class="btn-group">
+        <a href="/download_report" class="btn-report">📄 PDF Report</a>
+        <a href="/export/json" class="btn-report secondary">🧾 JSON</a>
+        <a href="/export/csv" class="btn-report secondary">📊 CSV</a>
+    </div>
+
+    <!-- Summary cards -->
+    <div class="summary-grid">
+        <div class="summary-card high">
+            <div class="summary-label">High</div>
+            <div class="summary-value">{{ high_count }}</div>
+        </div>
+        <div class="summary-card medium">
+            <div class="summary-label">Medium</div>
+            <div class="summary-value">{{ medium_count }}</div>
+        </div>
+        <div class="summary-card low">
+            <div class="summary-label">Low</div>
+            <div class="summary-value">{{ low_count }}</div>
+        </div>
+        <div class="summary-card total">
+            <div class="summary-label">Total Findings</div>
+            <div class="summary-value">{{ total_findings }}</div>
+        </div>
+    </div>
+
+    <!-- Risk score meter -->
+    <div class="risk-meter">
+        <div class="risk-header">
+            <span>Overall Risk Score</span>
+            <span>{{ risk_score }} / 100</span>
+        </div>
+        <div class="risk-bar">
+            <div class="risk-bar-fill" style="width: {{ risk_score }}%;"></div>
+        </div>
+    </div>
+
+    <!-- === SECTION 1 — SEVERITY PIE CHART === -->
+    <div class="chart-card wide">
+        <h3>Severity Distribution</h3>
+        <canvas id="severityChart"></canvas>
+    </div>
+
+    <!-- === SECTION 2 — OWASP MAPPING TABLE (NO GRAPH) === -->
+    <div class="chart-card wide owasp">
+        <h3>OWASP Top 10 Mapping</h3>
+
+        <table class="owasp-table">
+            <thead>
+                <tr>
+                    <th>OWASP Category</th>
+                    <th>Findings</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for i in range(owasp_labels|length) %}
+                <tr>
+                    <td>{{ owasp_labels[i] }}</td>
+                    <td>{{ owasp_values[i] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- === SECTION 3 — PER PAGE BAR CHART === -->
+    <div class="chart-card wide">
+        <h3>Per-Page Severity Breakdown</h3>
+        <canvas id="pageChart"></canvas>
+    </div>
+
+    <p class="small-text">
+        Target: <span class="highlight">{{ target_url }}</span> ·
+        Pages crawled: <span class="highlight">{{ total_pages }}</span>
+    </p>
+
+    <!-- === SECTION 4 — RESULTS TABLE === -->
+    {% if vulnerabilities %}
+    <table class="results-table">
+        <thead>
+            <tr>
+                <th>Type</th>
+                <th>URL</th>
+                <th>Parameter</th>
+                <th>Severity</th>
+                <th>Evidence</th>
+                <th>Time (UTC)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for v in vulnerabilities %}
+            <tr class="severity-{{ v.severity | lower }}">
+                <td>{{ v.type }}</td>
+                <td class="break-all">{{ v.url }}</td>
+                <td class="break-all">{{ v.param }}</td>
+                <td>{{ v.severity }}</td>
+                <td class="break-all">{{ v.evidence }}</td>
+                <td>{{ v.timestamp }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    <a href="/" class="btn-back">← New Scan</a>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    /* =========================
+       DATA FROM BACKEND
+       ========================= */
+    const severityCtx = document.getElementById("severityChart").getContext("2d");
+    const pageCtx = document.getElementById("pageChart").getContext("2d");
+
+    const pageLabels = {{ page_labels | tojson }};
+    const pageHigh = {{ page_high | tojson }};
+    const pageMedium = {{ page_medium | tojson }};
+    const pageLow = {{ page_low | tojson }};
+
+    /* =========================
+       PIE CHART
+       ========================= */
+    new Chart(severityCtx, {
+        type: "pie",
+        data: {
+            labels: ["High", "Medium", "Low"],
+            datasets: [{
+                data: [{{ high_count }}, {{ medium_count }}, {{ low_count }}],
+                backgroundColor: ["#ff4c4c", "#ffb74d", "#4caf50"],
+                borderColor: "#000",
+                borderWidth: 1
+            }]
+        },
+        options: {
+            plugins: {
+                legend: {
+                    labels: { color: "#e0ffe0" }
+                }
+            }
+        }
+    });
+
+    /* =========================
+       PER PAGE HORIZONTAL BAR CHART
+       ========================= */
+    new Chart(pageCtx, {
+        type: "bar",
+        data: {
+            labels: pageLabels,
+            datasets: [
+                { label: "High", data: pageHigh, backgroundColor: "#ff4c4c" },
+                { label: "Medium", data: pageMedium, backgroundColor: "#ffb74d" },
+                { label: "Low", data: pageLow, backgroundColor: "#4caf50" }
+            ]
+        },
+        options: {
+            indexAxis: "y",
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: { stacked: true, ticks: { color: "#c8ffde" }},
+                y: { stacked: true, ticks: { color: "#c8ffde", autoSkip: false }}
+            },
+            plugins: {
+                legend: { labels: { color: "#e0ffe0" }}
+            }
+        }
+    });
+
+});
+</script>
+
+{% endblock %}
